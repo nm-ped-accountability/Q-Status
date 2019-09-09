@@ -27,27 +27,35 @@ schools2017 <- master_schools[master_schools$ï..SY == 2017, ]
 
 # Define Functions --------------------------------------------------------
 
-# rank by TestCode and by schnumb
-# if there are fewer than four students for a testcode within a school,
-# then these 1-3 student(s) will be assigned to Q23
-
-
 # define function "Q_status"
+
 Q_status <- function(raw_data) {
+    
     raw_data %>%
+        
+        # select columns
         select(StID, schnumb, AGAID, Subtest, TestCode, SS, Istationtime) %>%
+        
         # remove science assessments
         filter(Subtest != "SCI") %>%
+        
         # remove Istationtime 1 and 2
         filter(is.na(Istationtime) | Istationtime == 3) %>%
         select(-Istationtime) %>%
+        
+        # rank by schnumb and testcode to determine Q status
         group_by(schnumb, TestCode) %>%
         mutate(n_students = n(),
                Quantile = ntile(SS, 4),
                Percentile = ntile(SS, 100),
                Qstatus = ifelse(Quantile == 1, "Q1",
                                 ifelse(Quantile == 4, "Q4", "Q23"))) %>%
+        
+        # if there are fewer than 4 students for a testcode within a school,
+        # then these 1-3 student(s) will be assigned to Q23
         mutate(Qstatus = ifelse(n_students < 4, "Q23", Qstatus)) %>%
+        
+        # sort data
         arrange(schnumb, TestCode, Quantile, SS)
 }
 
@@ -76,12 +84,13 @@ avt18_Q <- Q_status(raw_data = avt18_raw)
 avt18_Q$SY <- 2018
 avt18_Q
 
-# check for duplicates
+# check for duplicates by subject
 avt18_Q %>%
     group_by(StID, Subtest) %>%
     filter(n() > 1)
-# no duplications
 
+# check counts
+table(avt18_Q$Qstatus)
 table(avt18_Q$Qstatus, avt18_Q$TestCode)
 
 # save output
@@ -105,6 +114,17 @@ write.csv(avt18_Q, file = file_name, row.names = FALSE)
 avt17_Q <- Q_status(raw_data = avt17_raw)
 avt17_Q$SY <- 2017
 avt17_Q
+
+# check for duplicates by subject
+avt17_Q %>%
+    filter(Subtest == "READ") %>%
+    group_by(StID, Subtest) %>%
+    filter(n() > 1)
+
+avt17_Q[avt17_Q$StID == 347224115, ]
+avt17_Q[avt17_Q$StID == 681182986, ]
+avt17_Q[avt17_Q$StID == 169421971, ]
+avt17_Q[avt17_Q$StID == 818117772, ]
 
 # save output
 current_date <- Sys.Date()
