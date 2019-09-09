@@ -125,6 +125,7 @@ avt17_Q[avt17_Q$StID == 347224115, ]
 avt17_Q[avt17_Q$StID == 681182986, ]
 avt17_Q[avt17_Q$StID == 169421971, ]
 avt17_Q[avt17_Q$StID == 818117772, ]
+avt17_Q[avt17_Q$StID == 696544840, ]
 
 # save output
 current_date <- Sys.Date()
